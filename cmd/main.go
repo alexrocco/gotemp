@@ -1,19 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"time"
 
-	"github.com/alexrocco/gotemp/internal/temp"
+	"github.com/alexrocco/gotemp/internal"
 )
 
 func main() {
-	collector := temp.NewSensorCollector()
+	done := make(chan bool)
+	cwl := internal.NewLoop(10*time.Second, &done)
 
-	data, err := collector.Collect()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Temp %v, Hum %v", data.Temperature, data.Humidity)
+	cwl.Start()
 }
