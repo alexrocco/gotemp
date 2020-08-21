@@ -44,7 +44,7 @@ func (is *InfluxDBSender) Send(measurement string, values map[string]string, tag
 	valuesF = valuesF[1:]
 
 	// create the point for the time-series database
-	point := fmt.Sprintf("%s%s %s %d", measurement, tagsf, valuesF, time.Now().Unix())
+	point := fmt.Sprintf("%s%s %s %d", measurement, tagsf, valuesF, time.Now().UnixNano())
 
 	conn, err := net.Dial("udp", is.address)
 	if err != nil {

@@ -8,31 +8,30 @@ import (
 	"github.com/alexrocco/gotemp/internal/timeseries"
 )
 
-// Loop interface describe how to keep looping
+// Loop interface describe how to start/stop looping
 type Loop interface {
 	Start()
+	Stop()
 }
 
-// CollectWeatherloop holds the ticker for the weather collection data
-type CollectWeatherloop struct {
+// CollectWeatherLoop holds the ticker for the weather collection data
+type CollectWeatherLoop struct {
 	ticker *time.Ticker
-	done   *chan bool
+	done   chan bool
 }
 
-// NewLoop creates a new loop
-func NewLoop(d time.Duration, done *chan bool) *CollectWeatherloop {
-	return &CollectWeatherloop{
+// NewCollectWeatherLoop creates a new loop
+func NewCollectWeatherLoop(d time.Duration) *CollectWeatherLoop {
+	return &CollectWeatherLoop{
 		ticker: time.NewTicker(d),
-		done:   done,
+		done:   make(chan bool),
 	}
 }
 
 // Start starts CollectWeatherloop
-func (cwl *CollectWeatherloop) Start() {
+func (cwl *CollectWeatherLoop) Start() {
 	for {
 		select {
-		case <-*cwl.done:
-			return
 		case <-cwl.ticker.C:
 			// collect the weather
 			sensorCollector := temp.NewSensorCollector()
@@ -42,11 +41,11 @@ func (cwl *CollectWeatherloop) Start() {
 				continue
 			}
 
-			influxDBSender := timeseries.NewInfluxDBSender(":8086")
+			influxDBSender := timeseries.NewInfluxDBSender(":8089")
 
 			values := map[string]string{
-				"humidity":    fmt.Sprintf("%f", data.Humidity),
-				"temperature": fmt.Sprintf("%f", data.Temperature),
+				"humidity":    fmt.Sprintf("%.2f", data.Humidity),
+				"temperature": fmt.Sprintf("%.2f", data.Temperature),
 			}
 
 			tags := map[string]string{
@@ -58,6 +57,14 @@ func (cwl *CollectWeatherloop) Start() {
 			if err != nil {
 				fmt.Println(err)
 			}
+		case <-cwl.done:
+			return
 		}
 	}
+}
+
+// Stop stops the loop
+func (cwl *CollectWeatherLoop) Stop() {
+	fmt.Println("Stopping the loop")
+	cwl.done <- true
 }
