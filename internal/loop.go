@@ -2,21 +2,21 @@ package internal
 
 import (
 	"fmt"
-	"github.com/alexrocco/gotemp/internal/logger"
 	"time"
 
+	"github.com/alexrocco/gotemp/internal/logger"
 	"github.com/alexrocco/gotemp/internal/temp"
 	"github.com/alexrocco/gotemp/internal/timeseries"
 	"github.com/sirupsen/logrus"
 )
 
-// Loop interface describe how to start/stop looping
+// Loop interface describe how to start/stop looping.
 type Loop interface {
 	Start()
 	Stop()
 }
 
-// CollectWeatherLoop holds the ticker for the weather collection data
+// CollectWeatherLoop holds the ticker for the weather collection data.
 type CollectWeatherLoop struct {
 	log    *logrus.Entry
 	ticker *time.Ticker
@@ -26,7 +26,7 @@ type CollectWeatherLoop struct {
 	influxDBSender  *timeseries.InfluxDBSender
 }
 
-// NewCollectWeatherLoop creates a new loop
+// NewCollectWeatherLoop creates a new loop.
 func NewCollectWeatherLoop(d time.Duration) *CollectWeatherLoop {
 	return &CollectWeatherLoop{
 		ticker: time.NewTicker(d),
@@ -38,7 +38,7 @@ func NewCollectWeatherLoop(d time.Duration) *CollectWeatherLoop {
 	}
 }
 
-// Start starts the loop
+// Start starts the loop.
 func (cwl *CollectWeatherLoop) Start() {
 	for {
 		select {
@@ -47,6 +47,7 @@ func (cwl *CollectWeatherLoop) Start() {
 			data, err := cwl.sensorCollector.Collect()
 			if err != nil {
 				cwl.log.Error(err)
+
 				continue
 			}
 
@@ -70,7 +71,7 @@ func (cwl *CollectWeatherLoop) Start() {
 	}
 }
 
-// Stop stops the loop
+// Stop stops the loop.
 func (cwl *CollectWeatherLoop) Stop() {
 	cwl.log.Info("Stopping the loop")
 	cwl.done <- true

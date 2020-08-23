@@ -1,10 +1,11 @@
-package timeseries
+package timeseries_test
 
 import (
 	"net"
 	"regexp"
 	"testing"
 
+	"github.com/alexrocco/gotemp/internal/timeseries"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,6 +13,7 @@ const (
 	udpAddr = ":8180"
 )
 
+//nolint:funlen
 func TestInfluxDBSender_Send(t *testing.T) {
 	t.Run("It should send points to influxdb", func(t *testing.T) {
 		type testData struct {
@@ -61,7 +63,7 @@ func TestInfluxDBSender_Send(t *testing.T) {
 		defer server.Close()
 
 		for _, tt := range tests {
-			influxDBSender := NewInfluxDBSender(udpAddr)
+			influxDBSender := timeseries.NewInfluxDBSender(udpAddr)
 
 			err = influxDBSender.Send(tt.measurement, tt.values, tt.tags)
 			assert.Nil(t, err)
@@ -78,12 +80,12 @@ func TestInfluxDBSender_Send(t *testing.T) {
 		}
 	})
 	t.Run("It should fail when measurement is empty", func(t *testing.T) {
-		influxDBSender := NewInfluxDBSender(udpAddr)
+		influxDBSender := timeseries.NewInfluxDBSender(udpAddr)
 		err := influxDBSender.Send("", nil, nil)
 		assert.NotNil(t, err)
 	})
 	t.Run("It should fail when values is empty", func(t *testing.T) {
-		influxDBSender := NewInfluxDBSender(udpAddr)
+		influxDBSender := timeseries.NewInfluxDBSender(udpAddr)
 		err := influxDBSender.Send("test", nil, nil)
 		assert.NotNil(t, err)
 	})

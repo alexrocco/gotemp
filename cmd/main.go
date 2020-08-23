@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/alexrocco/gotemp/internal/logger"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/alexrocco/gotemp/internal"
+	"github.com/alexrocco/gotemp/internal/logger"
 )
+
+const ticker = 10
 
 func main() {
 	log := logger.NewLogger("main")
@@ -16,11 +18,11 @@ func main() {
 	log.Info("### Starting gotemp app ###")
 	defer log.Info("### Stopping gotemp app ###")
 
-	cwl := internal.NewCollectWeatherLoop(10 * time.Second)
+	cwl := internal.NewCollectWeatherLoop(ticker * time.Second)
 
 	sigNot := make(chan os.Signal, 1)
 	// catch commons signais when stopping a process
-	signal.Notify(sigNot, os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(sigNot, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
 		// Wait for the signal

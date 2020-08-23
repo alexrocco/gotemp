@@ -5,22 +5,22 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Data holds sensor information
+// Data holds sensor information.
 type Data struct {
 	Temperature float32
 	Humidity    float32
 }
 
-// Sensor interface reads data from the sensor plugged. It was created to wrap go-dht package for better testing
+// Sensor interface reads data from the sensor plugged. It was created to wrap go-dht package for better testing.
 type Sensor interface {
 	Read() (Data, error)
 }
 
-// DHT22Sensor implements Sensor interface for DHT22 sensor
+// DHT22Sensor implements Sensor interface for DHT22 sensor.
 type DHT22Sensor struct {
 }
 
-// NewDHT22Sensor creates a sensor for DHT22
+// NewDHT22Sensor creates a sensor for DHT22.
 func NewDHT22Sensor() *DHT22Sensor {
 	return &DHT22Sensor{}
 }

@@ -2,7 +2,7 @@ package logger
 
 import "github.com/sirupsen/logrus"
 
-// NewLogger creates an common logging struct
+// NewLogger creates an common logging struct.
 func NewLogger(context string) *logrus.Entry {
 	log := logrus.New()
 	log.SetFormatter(&logrus.TextFormatter{
