@@ -2,10 +2,12 @@ package internal
 
 import (
 	"fmt"
+	"github.com/alexrocco/gotemp/internal/logger"
 	"time"
 
 	"github.com/alexrocco/gotemp/internal/temp"
 	"github.com/alexrocco/gotemp/internal/timeseries"
+	"github.com/sirupsen/logrus"
 )
 
 // Loop interface describe how to start/stop looping
@@ -16,8 +18,12 @@ type Loop interface {
 
 // CollectWeatherLoop holds the ticker for the weather collection data
 type CollectWeatherLoop struct {
+	log    *logrus.Entry
 	ticker *time.Ticker
 	done   chan bool
+
+	sensorCollector *temp.SensorCollector
+	influxDBSender  *timeseries.InfluxDBSender
 }
 
 // NewCollectWeatherLoop creates a new loop
@@ -25,23 +31,24 @@ func NewCollectWeatherLoop(d time.Duration) *CollectWeatherLoop {
 	return &CollectWeatherLoop{
 		ticker: time.NewTicker(d),
 		done:   make(chan bool),
+		log:    logger.NewLogger("collect_weather_loop"),
+
+		sensorCollector: temp.NewSensorCollector(),
+		influxDBSender:  timeseries.NewInfluxDBSender(":8089"),
 	}
 }
 
-// Start starts CollectWeatherloop
+// Start starts the loop
 func (cwl *CollectWeatherLoop) Start() {
 	for {
 		select {
 		case <-cwl.ticker.C:
 			// collect the weather
-			sensorCollector := temp.NewSensorCollector()
-			data, err := sensorCollector.Collect()
+			data, err := cwl.sensorCollector.Collect()
 			if err != nil {
-				fmt.Println(err)
+				cwl.log.Error(err)
 				continue
 			}
-
-			influxDBSender := timeseries.NewInfluxDBSender(":8089")
 
 			values := map[string]string{
 				"humidity":    fmt.Sprintf("%.2f", data.Humidity),
@@ -53,9 +60,9 @@ func (cwl *CollectWeatherLoop) Start() {
 			}
 
 			// push to InfluxDB
-			err = influxDBSender.Send("weather", values, tags)
+			err = cwl.influxDBSender.Send("weather", values, tags)
 			if err != nil {
-				fmt.Println(err)
+				cwl.log.Error(err)
 			}
 		case <-cwl.done:
 			return
@@ -65,6 +72,6 @@ func (cwl *CollectWeatherLoop) Start() {
 
 // Stop stops the loop
 func (cwl *CollectWeatherLoop) Stop() {
-	fmt.Println("Stopping the loop")
+	cwl.log.Info("Stopping the loop")
 	cwl.done <- true
 }

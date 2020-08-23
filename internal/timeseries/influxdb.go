@@ -2,22 +2,26 @@ package timeseries
 
 import (
 	"fmt"
+	"github.com/alexrocco/gotemp/internal/logger"
 	"net"
 	"sort"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // InfluxDBSender holds configuration for InfluxDB
 type InfluxDBSender struct {
 	address string
+	log     *logrus.Entry
 }
 
 // NewInfluxDBSender creates a InfluxDBSender
 func NewInfluxDBSender(address string) *InfluxDBSender {
 	return &InfluxDBSender{
 		address: address,
+		log:     logger.NewLogger("influxdb_sender"),
 	}
 }
 
@@ -46,12 +50,14 @@ func (is *InfluxDBSender) Send(measurement string, values map[string]string, tag
 	// create the point for the time-series database
 	point := fmt.Sprintf("%s%s %s %d", measurement, tagsf, valuesF, time.Now().UnixNano())
 
+	// open UDP connection
 	conn, err := net.Dial("udp", is.address)
 	if err != nil {
 		return errors.Wrap(err, "cannot open UDP connection")
 	}
 	defer conn.Close()
 
+	is.log.Infof("Sending point to InfluxDB: %s", point)
 	_, err = conn.Write([]byte(point))
 	if err != nil {
 		return errors.Wrap(err, "could not write on InfluxUDP port")

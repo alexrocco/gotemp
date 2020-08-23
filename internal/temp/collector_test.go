@@ -2,8 +2,7 @@ package temp
 
 import (
 	"errors"
-	"log"
-	"os"
+	"github.com/alexrocco/gotemp/internal/logger"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,7 +31,7 @@ func TestSensorCollector_Collect(t *testing.T) {
 		mockSensor.On("Read").Return(data, nil)
 
 		collector := SensorCollector{
-			logger: *log.New(os.Stdout, "TEST", log.Lmicroseconds),
+			log:    logger.NewLogger("test"),
 			sensor: &mockSensor,
 		}
 
@@ -47,7 +46,7 @@ func TestSensorCollector_Collect(t *testing.T) {
 		mockSensor.On("Read").Return(Data{}, errors.New("some error"))
 
 		collector := SensorCollector{
-			logger: *log.New(os.Stdout, "TEST", log.Lmicroseconds),
+			log:    logger.NewLogger("test"),
 			sensor: &mockSensor,
 		}
 

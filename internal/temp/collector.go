@@ -1,10 +1,9 @@
 package temp
 
 import (
-	"log"
-	"os"
-
+	"github.com/alexrocco/gotemp/internal/logger"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // Collector collects data temperature
@@ -15,18 +14,18 @@ type Collector interface {
 
 // SensorCollector implements Collector and collect data from the sensor
 type SensorCollector struct {
-	logger log.Logger
+	log    *logrus.Entry
 	sensor Sensor
 }
 
-// NewSensorCollector creates a colector for temperature
+// NewSensorCollector creates a collector for temperature
 func NewSensorCollector() *SensorCollector {
-	colector := SensorCollector{
+	collector := SensorCollector{
 		sensor: NewDHT22Sensor(),
-		logger: *log.New(os.Stdout, "SENSOR_COLLECTOR ", log.Ltime),
+		log:    logger.NewLogger("sensor_collector"),
 	}
 
-	return &colector
+	return &collector
 }
 
 // Collect collects the data using the DHT22 sensor plugged in the Raspberry PI
@@ -37,7 +36,7 @@ func (sc *SensorCollector) Collect() (Data, error) {
 		return Data{}, errors.Wrap(err, "error collecting data sensor")
 	}
 
-	sc.logger.Printf("Temperature: %v, Humidity: %v", data.Temperature, data.Humidity)
+	sc.log.Infof("Temperature: %v, Humidity: %v", data.Temperature, data.Humidity)
 
 	return data, nil
 }
