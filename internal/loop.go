@@ -21,20 +21,23 @@ type CollectWeatherLoop struct {
 	log    *logrus.Entry
 	ticker *time.Ticker
 	done   chan bool
+	tags   map[string]string
 
 	sensorCollector *temp.SensorCollector
 	influxDBSender  *timeseries.InfluxDBSender
 }
 
 // NewCollectWeatherLoop creates a new loop.
-func NewCollectWeatherLoop(d time.Duration) *CollectWeatherLoop {
+func NewCollectWeatherLoop(d time.Duration, influxDBAddr string, tags map[string]string) *CollectWeatherLoop {
 	return &CollectWeatherLoop{
 		ticker: time.NewTicker(d),
-		done:   make(chan bool),
-		log:    logger.NewLogger("collect_weather_loop"),
+		tags:   tags,
+
+		done: make(chan bool),
+		log:  logger.NewLogger("collect_weather_loop"),
 
 		sensorCollector: temp.NewSensorCollector(),
-		influxDBSender:  timeseries.NewInfluxDBSender(":8089"),
+		influxDBSender:  timeseries.NewInfluxDBSender(influxDBAddr),
 	}
 }
 
