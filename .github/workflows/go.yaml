@@ -34,4 +34,4 @@ jobs:
       run: bash <(curl -s https://codecov.io/bash) -t $codecov_token
 
     - name: Build
-      run: go build -v ./cmd/gotemp/main.go
+      run: go build -v ./cmd/main.go
